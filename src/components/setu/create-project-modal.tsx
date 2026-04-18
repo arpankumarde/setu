@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -15,6 +16,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { createProject } from "@/lib/backend";
 
 const suggestedSkills = [
   "Next.js",
@@ -26,6 +28,11 @@ const suggestedSkills = [
 ];
 
 export function CreateProjectModal() {
+  const router = useRouter();
+  const [title, setTitle] = useState("");
+  const [description, setDescription] = useState("");
+  const [budget, setBudget] = useState("");
+  const [saving, setSaving] = useState(false);
   const [selectedSkills, setSelectedSkills] = useState<string[]>([
     "Next.js",
     "TypeScript",
@@ -35,6 +42,24 @@ export function CreateProjectModal() {
     setSelectedSkills((prev) =>
       prev.includes(skill) ? prev.filter((s) => s !== skill) : [...prev, skill],
     );
+  };
+
+  const onSave = async () => {
+    if (!title.trim() || !description.trim() || !budget.trim()) {
+      return;
+    }
+    setSaving(true);
+    try {
+      await createProject({
+        title: title.trim(),
+        description: description.trim(),
+        budget: budget.trim(),
+        requiredSkills: selectedSkills,
+      });
+      router.refresh();
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -53,7 +78,12 @@ export function CreateProjectModal() {
         <div className="space-y-4">
           <div className="space-y-2">
             <Label htmlFor="project-title">Title</Label>
-            <Input id="project-title" placeholder="B2B lead qualification dashboard" />
+            <Input
+              id="project-title"
+              placeholder="B2B lead qualification dashboard"
+              value={title}
+              onChange={(event) => setTitle(event.target.value)}
+            />
           </div>
 
           <div className="space-y-2">
@@ -61,12 +91,19 @@ export function CreateProjectModal() {
             <Textarea
               id="project-description"
               placeholder="Describe what should be built and what success looks like."
+              value={description}
+              onChange={(event) => setDescription(event.target.value)}
             />
           </div>
 
           <div className="space-y-2">
             <Label htmlFor="project-budget">Budget</Label>
-            <Input id="project-budget" placeholder="INR 40,000" />
+            <Input
+              id="project-budget"
+              placeholder="INR 40,000"
+              value={budget}
+              onChange={(event) => setBudget(event.target.value)}
+            />
           </div>
 
           <div className="space-y-2">
@@ -95,7 +132,9 @@ export function CreateProjectModal() {
 
         <DialogFooter>
           <Button variant="outline">Cancel</Button>
-          <Button className="bg-indigo-600 hover:bg-indigo-500">Save Project</Button>
+          <Button onClick={onSave} disabled={saving} className="bg-indigo-600 hover:bg-indigo-500">
+            {saving ? "Saving..." : "Save Project"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
