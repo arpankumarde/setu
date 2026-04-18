@@ -1,0 +1,83 @@
+import { notFound } from "next/navigation";
+import { AppShell } from "@/components/setu/app-shell";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { businessProjects, workspaceMessages } from "@/lib/mock-data";
+
+type WorkspacePageProps = {
+  params: Promise<{ id: string }>;
+};
+
+const milestones = [
+  { id: "ms1", name: "Scope lock", status: "completed" },
+  { id: "ms2", name: "MVP build", status: "in-progress" },
+  { id: "ms3", name: "QA + handover", status: "pending" },
+];
+
+export default async function WorkspacePage({ params }: WorkspacePageProps) {
+  const { id } = await params;
+  const project = businessProjects.find((item) => item.id === id);
+
+  if (!project) {
+    notFound();
+  }
+
+  return (
+    <AppShell title="Workspace" subtitle={project.title}>
+      <div className="grid gap-4 lg:grid-cols-5">
+        <Card className="bg-white lg:col-span-3">
+          <CardHeader>
+            <CardTitle>Chat</CardTitle>
+            <CardDescription>Project communication stream</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {workspaceMessages.map((message) => (
+              <div key={message.id} className="rounded-lg border bg-[#FAFAFA] p-3">
+                <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
+                  <span className="capitalize">{message.sender}</span>
+                  <span>{message.createdAt}</span>
+                </div>
+                <p className="text-sm">{message.content}</p>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        <Card className="bg-white lg:col-span-2">
+          <CardHeader>
+            <CardTitle>Milestones</CardTitle>
+            <CardDescription>Track status without clutter</CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {milestones.map((milestone) => (
+              <div key={milestone.id} className="rounded-lg border p-3">
+                <p className="font-medium">{milestone.name}</p>
+                <div className="mt-2 flex items-center justify-between">
+                  <Badge variant="outline" className="capitalize">
+                    {milestone.status}
+                  </Badge>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm">
+                      Blocked
+                    </Button>
+                    <Button size="sm" className="bg-green-700 hover:bg-green-600">
+                      Done
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+    </AppShell>
+  );
+}
+
