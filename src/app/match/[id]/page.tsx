@@ -9,7 +9,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { businessProjects, matches, students } from "@/lib/mock-data";
+import { getMatches, getProjects, getStudents, normalizeProjectId } from "@/lib/backend";
 
 type MatchPageProps = {
   params: Promise<{ id: string }>;
@@ -17,20 +17,31 @@ type MatchPageProps = {
 
 export default async function MatchPage({ params }: MatchPageProps) {
   const { id } = await params;
-  const project = businessProjects.find((item) => item.id === id);
-  const match = matches.find((item) => item.projectId === id);
+  const projectId = normalizeProjectId(id);
+  const [projects, students, matches] = await Promise.all([
+    getProjects(),
+    getStudents(),
+    getMatches(projectId).catch(() => []),
+  ]);
+  const project = projects.find((item) => normalizeProjectId(item.id) === projectId);
 
-  if (!project || !match) {
+  if (!project) {
     notFound();
   }
 
-  const suggestedStudents = match.suggestedStudents
+  const suggestedStudents = matches
     .map((suggestion) => {
-      const student = students.find((item) => item.id === suggestion.studentId);
+      const student = students.find(
+        (item) => normalizeProjectId(item.id) === suggestion.student_id,
+      );
       if (!student) {
         return null;
       }
-      return { student, reason: suggestion.reason, score: suggestion.score };
+      return {
+        student,
+        reason: `Matched skills: ${suggestion.matched_skills.join(", ") || "general fit"}`,
+        score: suggestion.match_score,
+      };
     })
     .filter((value): value is NonNullable<typeof value> => Boolean(value));
 

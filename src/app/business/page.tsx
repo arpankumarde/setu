@@ -16,9 +16,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { businessProjects } from "@/lib/mock-data";
+import { getProjects } from "@/lib/backend";
 
-export default function BusinessPage() {
+export default async function BusinessPage() {
+  const businessProjects = await getProjects();
+
   return (
     <AppShell
       title="Business Dashboard"

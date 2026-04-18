@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 import { AppShell } from "@/components/setu/app-shell";
+import { WorkspaceChat } from "@/components/setu/workspace-chat";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -9,7 +10,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { businessProjects, workspaceMessages } from "@/lib/mock-data";
+import { getProjects, getWorkspaceMessages, normalizeProjectId } from "@/lib/backend";
 
 type WorkspacePageProps = {
   params: Promise<{ id: string }>;
@@ -23,7 +24,12 @@ const milestones = [
 
 export default async function WorkspacePage({ params }: WorkspacePageProps) {
   const { id } = await params;
-  const project = businessProjects.find((item) => item.id === id);
+  const projectId = normalizeProjectId(id);
+  const [projects, workspaceMessages] = await Promise.all([
+    getProjects(),
+    getWorkspaceMessages(projectId),
+  ]);
+  const project = projects.find((item) => normalizeProjectId(item.id) === projectId);
 
   if (!project) {
     notFound();
@@ -38,15 +44,7 @@ export default async function WorkspacePage({ params }: WorkspacePageProps) {
             <CardDescription>Project communication stream</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            {workspaceMessages.map((message) => (
-              <div key={message.id} className="rounded-lg border bg-[#FAFAFA] p-3">
-                <div className="mb-1 flex items-center justify-between text-xs text-muted-foreground">
-                  <span className="capitalize">{message.sender}</span>
-                  <span>{message.createdAt}</span>
-                </div>
-                <p className="text-sm">{message.content}</p>
-              </div>
-            ))}
+            <WorkspaceChat projectId={projectId} messages={workspaceMessages} />
           </CardContent>
         </Card>
 

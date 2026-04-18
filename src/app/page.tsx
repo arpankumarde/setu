@@ -8,7 +8,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { businessProjects, students } from "@/lib/mock-data";
+import { getProjects, getStudents } from "@/lib/backend";
 
 const steps = [
   "Businesses post real work, not generic job descriptions.",
@@ -16,9 +16,10 @@ const steps = [
   "Setu suggests best-fit talent and opens a live delivery workspace.",
 ];
 
-export default function Page() {
+export default async function Page() {
+  const [students, projects] = await Promise.all([getStudents(), getProjects()]);
   const featuredStudent = students[0];
-  const featuredProject = businessProjects[0];
+  const featuredProject = projects[0];
 
   return (
     <div className="mx-auto flex min-h-screen max-w-6xl flex-col gap-12 px-4 py-10">
@@ -55,19 +56,19 @@ export default function Page() {
       <section className="grid gap-4 md:grid-cols-2">
         <Card className="bg-white">
           <CardHeader>
-            <CardTitle>{featuredStudent.name}</CardTitle>
-            <CardDescription>{featuredStudent.title}</CardDescription>
+            <CardTitle>{featuredStudent?.name ?? "No student yet"}</CardTitle>
+            <CardDescription>{featuredStudent?.title ?? "Add students to begin"}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <div className="flex flex-wrap gap-2">
-              {featuredStudent.skills.map((skill) => (
+              {(featuredStudent?.skills ?? []).map((skill) => (
                 <Badge key={skill} variant="secondary">
                   {skill}
                 </Badge>
               ))}
             </div>
             <p className="text-sm text-muted-foreground">
-              Score {featuredStudent.score} based on consistency, delivery quality,
+              Score {featuredStudent?.score ?? 0} based on consistency, delivery quality,
               and project outcomes.
             </p>
           </CardContent>
@@ -75,15 +76,15 @@ export default function Page() {
 
         <Card className="bg-white">
           <CardHeader>
-            <CardTitle>{featuredProject.title}</CardTitle>
-            <CardDescription>{featuredProject.budget}</CardDescription>
+            <CardTitle>{featuredProject?.title ?? "No project yet"}</CardTitle>
+            <CardDescription>{featuredProject?.budget ?? "Create your first project"}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
             <p className="text-sm text-muted-foreground">
-              {featuredProject.description}
+              {featuredProject?.description ?? "Project details will appear here."}
             </p>
             <div className="flex flex-wrap gap-2">
-              {featuredProject.requiredSkills.map((skill) => (
+              {(featuredProject?.requiredSkills ?? []).map((skill) => (
                 <Badge key={skill} variant="outline">
                   {skill}
                 </Badge>
